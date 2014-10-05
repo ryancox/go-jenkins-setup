@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>COMMIT</name>
+          <description></description>
+          <defaultValue>refs/heads/master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.2.6">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/spf13/hugo</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>$COMMIT</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>src/github.com/spf13/hugo</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>go get github.com/ryancox/gobench2plot github.com/golang/lint/golint bitbucket.org/tebeka/go2xunit</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>cd src/github.com/spf13/hugo &amp;&amp; go get -t -v ./...</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>go test -bench=Bench* -test.benchmem -v github.com/spf13/hugo/... &gt; ${WORKSPACE}/test.output</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>./bin/golint github.com/spf13/hugo/... &gt; lint.txt</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>cat test.output | &quot;$WORKSPACE/bin/go2xunit&quot; -output tests.xml</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>cat test.output | ./bin/gobench2plot &gt; benchmarks.xml</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.warnings.WarningsPublisher plugin="warnings@4.42-SNAPSHOT">
+      <healthy></healthy>
+      <unHealthy></unHealthy>
+      <thresholdLimit>low</thresholdLimit>
+      <pluginName>[WARNINGS] </pluginName>
+      <defaultEncoding></defaultEncoding>
+      <canRunOnFailed>false</canRunOnFailed>
+      <useStableBuildAsReference>false</useStableBuildAsReference>
+      <useDeltaValues>false</useDeltaValues>
+      <thresholds plugin="analysis-core@1.61">
+        <unstableTotalAll></unstableTotalAll>
+        <unstableTotalHigh></unstableTotalHigh>
+        <unstableTotalNormal></unstableTotalNormal>
+        <unstableTotalLow></unstableTotalLow>
+        <failedTotalAll></failedTotalAll>
+        <failedTotalHigh></failedTotalHigh>
+        <failedTotalNormal></failedTotalNormal>
+        <failedTotalLow></failedTotalLow>
+      </thresholds>
+      <shouldDetectModules>false</shouldDetectModules>
+      <dontComputeNew>true</dontComputeNew>
+      <doNotResolveRelativePaths>true</doNotResolveRelativePaths>
+      <parserConfigurations>
+        <hudson.plugins.warnings.ParserConfiguration>
+          <pattern>lint.txt</pattern>
+          <parserName>Go Lint</parserName>
+        </hudson.plugins.warnings.ParserConfiguration>
+      </parserConfigurations>
+      <consoleParsers/>
+    </hudson.plugins.warnings.WarningsPublisher>
+    <hudson.plugins.plot.PlotPublisher plugin="plot@1.8">
+      <plots>
+        <hudson.plugins.plot.Plot>
+          <title>BenchMarks: NsPerOp</title>
+          <yaxis>ns</yaxis>
+          <series>
+            <hudson.plugins.plot.XMLSeries>
+              <file>benchmarks.xml</file>
+              <label></label>
+              <fileType>xml</fileType>
+              <xpathString>/Benchmarks/NsPerOp/*</xpathString>
+              <url></url>
+              <nodeTypeString>NODESET</nodeTypeString>
+            </hudson.plugins.plot.XMLSeries>
+          </series>
+          <group>BenchMarks: NsPerOp</group>
+          <numBuilds>30</numBuilds>
+          <csvFileName>205930595.csv</csvFileName>
+          <csvLastModification>0</csvLastModification>
+          <style>line</style>
+          <useDescr>false</useDescr>
+          <keepRecords>false</keepRecords>
+          <exclZero>false</exclZero>
+        </hudson.plugins.plot.Plot>
+        <hudson.plugins.plot.Plot>
+          <title>BenchMarks: AllocsPerOp</title>
+          <yaxis>count</yaxis>
+          <series>
+            <hudson.plugins.plot.XMLSeries>
+              <file>benchmarks.xml</file>
+              <label></label>
+              <fileType>xml</fileType>
+              <xpathString>/Benchmarks/AllocsPerOp/*</xpathString>
+              <url></url>
+              <nodeTypeString>NODESET</nodeTypeString>
+            </hudson.plugins.plot.XMLSeries>
+          </series>
+          <group>BenchMarks: AllocsPerOp</group>
+          <numBuilds>30</numBuilds>
+          <csvFileName>1435059224.csv</csvFileName>
+          <csvLastModification>0</csvLastModification>
+          <style>line</style>
+          <useDescr>false</useDescr>
+          <keepRecords>false</keepRecords>
+          <exclZero>false</exclZero>
+        </hudson.plugins.plot.Plot>
+      </plots>
+    </hudson.plugins.plot.PlotPublisher>
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.0">
+      <testResults>tests.xml</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <testDataPublishers/>
+      <healthScaleFactor>1.0</healthScaleFactor>
+    </hudson.tasks.junit.JUnitResultArchiver>
+  </publishers>
+  <buildWrappers>
+    <EnvInjectBuildWrapper plugin="envinject@1.90">
+      <info>
+        <propertiesContent>GOPATH=$WORKSPACE</propertiesContent>
+        <loadFilesFromMaster>false</loadFilesFromMaster>
+      </info>
+    </EnvInjectBuildWrapper>
+  </buildWrappers>
+</project>
+
