@@ -6,13 +6,16 @@ MAINTAINER ryan.a.cox@gmail.com
 
 ENV JENKINS_HOME /var/lib/jenkins
 
-# Install aptitude packages 
+# Install aptitude packages
+RUN apt-get update
+RUN apt-get install -y software-properties-common python-software-properties
+RUN add-apt-repository ppa:openjdk-r/ppa 
 RUN apt-get update
 RUN apt-get install -y git openjdk-7-jre python-pip software-properties-common wget bzr mercurial unzip
 
 # Install go 1.3.3 
-RUN wget -q https://storage.googleapis.com/golang/go1.3.3.linux-amd64.tar.gz
-RUN tar -C /usr/local -xzf go1.3.3.linux-amd64.tar.gz 
+RUN wget -q https://storage.googleapis.com/golang/go1.7.3.linux-amd64.tar.gz
+RUN tar -C /usr/local -xzf go1.7.3.linux-amd64.tar.gz 
 ENV PATH /usr/local/go/bin:$PATH
 
 # Install latest jenkins via aptitude
